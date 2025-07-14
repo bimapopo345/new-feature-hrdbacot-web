@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hrdbacot.id - Gaji, Ulasan, Komunitas & Loker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .nav-active { background-color: #f0fdfa; color: #0d9488; font-weight: 600; }
+        .nav-inactive { color: #475569; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .chart-container { position: relative; width: 100%; height: 280px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 0.75rem; max-width: 90%; width: 500px; }
+        .filter-btn-active { background-color: #0d9488; color: white; }
+        .filter-btn-inactive { background-color: #e2e8f0; color: #475569; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="flex h-screen bg-slate-100">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex-shrink-0 fixed lg:relative h-full lg:h-auto lg:flex flex-col z-40 -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="h-20 flex items-center justify-between px-6 border-b border-slate-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">H</div>
+                    <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">hrdbacot</h1>
+                </div>
+                <button id="close-sidebar-btn" class="lg:hidden text-slate-500 hover:text-slate-800">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="#gaji" data-content="gaji" class="sidebar-link nav-active flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors">
+                    <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                    <span>Kalkulator Gaji</span>
+                </a>
+                <a href="#komunitas" data-content="komunitas" class="sidebar-link nav-inactive flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors hover:bg-slate-50">
+                    <i data-lucide="message-square-text" class="w-5 h-5"></i>
+                    <span>Diskusi Komunitas</span>
+                </a>
+                <a href="#ulasan" data-content="ulasan" class="sidebar-link nav-inactive flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors hover:bg-slate-50">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                    <span>Ulasan Perusahaan</span>
+                </a>
+                <a href="#loker" data-content="loker" class="sidebar-link nav-inactive flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors hover:bg-slate-50">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                    <span>Lowongan Kerja</span>
+                </a>
+            </nav>
+            <div class="px-6 py-4 border-t border-slate-200">
+                <button id="main-contribute-btn" class="w-full bg-teal-600 text-white font-semibold py-2.5 rounded-lg text-sm hover:bg-teal-700 transition-colors flex items-center justify-center space-x-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span>Beri Kontribusi</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="h-20 bg-white/80 backdrop-blur-lg border-b border-slate-200 flex-shrink-0">
+                <div class="container mx-auto px-6 h-full flex items-center justify-between">
+                    <div class="flex items-center">
+                        <button id="open-sidebar-btn" class="lg:hidden mr-4 text-slate-600 hover:text-slate-900">
+                            <i data-lucide="menu" class="w-6 h-6"></i>
+                        </button>
+                        <div class="relative w-full max-w-sm md:max-w-lg">
+                            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                            <input id="search-input" type="text" placeholder="Cari di halaman ini..." class="w-full pl-12 pr-4 py-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-shadow">
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                         <button class="p-2 rounded-full hover:bg-slate-200 transition-colors">
+                            <i data-lucide="bell" class="w-5 h-5 text-slate-600"></i>
+                        </button>
+                        <button class="hidden sm:block bg-teal-50 text-teal-700 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-teal-100 transition-colors">Login</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Content -->
+            <main id="main-content-area" class="flex-1 overflow-y-auto p-6">
+                <!-- Content will be injected here by JS -->
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="contribute-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-4">Beri Kontribusi</h3>
+            <p class="text-slate-600 mb-6">Bantu komunitas dengan berbagi informasi. Identitasmu 100% anonim.</p>
+            <div class="space-y-3">
+                <button class="w-full text-left p-4 rounded-lg bg-slate-100 hover:bg-slate-200">Bagikan Info Gaji</button>
+                <button class="w-full text-left p-4 rounded-lg bg-slate-100 hover:bg-slate-200">Tulis Ulasan Perusahaan</button>
+                <button class="w-full text-left p-4 rounded-lg bg-slate-100 hover:bg-slate-200">Mulai Diskusi Baru</button>
+            </div>
+             <button class="modal-close-btn mt-6 w-full text-center text-sm text-slate-500 hover:text-slate-800">Tutup</button>
+        </div>
+    </div>
+
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            const contentArea = document.getElementById('main-content-area');
+            const searchInput = document.getElementById('search-input');
+            let gajiChartInstance = null;
+            let currentContentId = 'gaji';
+
+            // --- DUMMY DATA ---
+            const communityPosts = [
+                { id: 1, topic: 'Gaji di startup X vs korporat Y?', category: '#GajiGaji', author: 'Anonim (Terverifikasi)', time: '2 jam lalu', replies: 15, upvotes: 42 },
+                { id: 2, topic: 'Red flag waktu interview apa aja sih?', category: '#ReviewRekrutmen', author: 'Anonim (Terverifikasi)', time: '5 jam lalu', replies: 32, upvotes: 89 },
+                { id: 3, topic: 'Cara negosiasi kenaikan gaji tahunan?', category: '#TipsKarir', author: 'Anonim (Terverifikasi)', time: '1 hari lalu', replies: 25, upvotes: 67 },
+                { id: 4, topic: 'Work-life balance di industri FMCG gimana?', category: '#BudayaKerja', author: 'Anonim (Terverifikasi)', time: '2 hari lalu', replies: 18, upvotes: 55 },
+            ];
+
+            const companyData = {
+                '1': { name: 'PT Teknologi Maju', rating: 4.5, culture: 4.6, salary: 4.3, wlb: 4.0, logo: '🏢', industry: 'Teknologi', reviews: [
+                    { rating: 5, title: 'Tempat bertumbuh yang baik', content: 'Lingkungan kerja sangat mendukung untuk belajar hal baru. Gaji juga sangat kompetitif untuk level junior.'},
+                    { rating: 4, title: 'Cukup seimbang', content: 'WLB terjaga dengan baik, jarang sekali lembur. Manajemen cukup transparan.'},
+                ]},
+                '2': { name: 'Bank Sejahtera Bersama', rating: 4.2, culture: 4.0, salary: 4.5, wlb: 3.8, logo: '🏦', industry: 'Keuangan', reviews: [] },
+                '3': { name: 'Retail Cepat Saji', rating: 3.8, culture: 3.5, salary: 3.9, wlb: 4.1, logo: '🏪', industry: 'Retail', reviews: [] },
+            };
+
+            const jobListings = [
+                { title: 'Senior Backend Engineer', company: 'PT Teknologi Maju', location: 'Jakarta', type: 'Full-time', tag: 'Gaji Kompetitif' },
+                { title: 'Digital Marketing Manager', company: 'Retail Cepat Saji', location: 'Surabaya', type: 'Full-time', tag: 'WLB Teratas' },
+                { title: 'UI/UX Designer', company: 'Fintech Inovatif', location: 'Remote', type: 'Remote', tag: 'Budaya Kerja Positif' },
+            ];
+            
+            // --- TEMPLATE GENERATORS ---
+            const gajiTemplate = () => `
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-1">Kalkulator Gaji</h2>
+                    <p class="text-slate-600 mb-6">Gunakan data dari 100,000+ kontributor untuk dapatkan estimasi gaji yang relevan.</p>
+                    <div class="grid lg:grid-cols-5 gap-8">
+                        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <form id="gaji-form" class="space-y-4">
+                                <div>
+                                    <label for="posisi" class="text-sm font-semibold text-slate-600">Posisi</label>
+                                    <input type="text" id="posisi" value="Product Manager" class="mt-1 w-full p-2.5 border rounded-md bg-slate-50 text-sm">
+                                </div>
+                                <div>
+                                    <label for="industri" class="text-sm font-semibold text-slate-600">Industri</label>
+                                    <select id="industri" class="mt-1 w-full p-2.5 border rounded-md bg-slate-50 text-sm">
+                                        <option>Teknologi & Startup</option><option>Keuangan & Bank</option><option>FMCG</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="pengalaman" class="text-sm font-semibold text-slate-600">Pengalaman (Tahun)</label>
+                                    <input type="number" id="pengalaman" value="5" class="mt-1 w-full p-2.5 border rounded-md bg-slate-50 text-sm">
+                                </div>
+                                <button type="submit" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition-transform hover:scale-105">Cek Gaji</button>
+                            </form>
+                        </div>
+                        <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="font-bold text-lg text-slate-800">Hasil Analisis</h3>
+                            <div id="gaji-result" class="mt-4 text-center py-4"></div>
+                            <div class="chart-container"><canvas id="gajiChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const komunitasTemplate = (filter = 'Semua') => `
+                <div class="fade-in">
+                    <div class="flex flex-wrap gap-4 justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 mb-1">Diskusi Komunitas</h2>
+                            <p class="text-slate-600">Percakapan jujur dari para profesional terverifikasi.</p>
+                        </div>
+                        <button class="bg-teal-600 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors flex items-center space-x-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i><span>Mulai Diskusi</span>
+                        </button>
+                    </div>
+                    <div class="mb-6 flex flex-wrap gap-2">
+                        ${['Semua', '#GajiGaji', '#ReviewRekrutmen', '#TipsKarir', '#BudayaKerja'].map(cat => `
+                            <button data-category="${cat}" class="community-filter-btn px-3 py-1.5 text-sm font-semibold rounded-full ${filter === cat ? 'filter-btn-active' : 'filter-btn-inactive'}">${cat}</button>
+                        `).join('')}
+                    </div>
+                    <div id="community-posts-container" class="space-y-4">
+                    ${communityPosts.filter(p => filter === 'Semua' || p.category === filter).map(post => `
+                        <div class="bg-white p-4 rounded-lg border border-slate-200 flex items-start space-x-4 hover:border-teal-500 cursor-pointer searchable-item" data-search-term="${post.topic.toLowerCase()}">
+                            <div class="text-center flex-shrink-0">
+                                <button class="upvote-btn text-slate-500 hover:text-teal-600"><i data-lucide="arrow-big-up" class="w-5 h-5"></i></button>
+                                <div class="upvote-count font-bold text-slate-800 text-lg">${post.upvotes}</div>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-lg">${post.topic}</h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    di <span class="font-semibold text-teal-600">${post.category}</span> oleh ${post.author} • ${post.time}
+                                </p>
+                            </div>
+                            <div class="ml-auto flex items-center space-x-2 text-sm text-slate-500">
+                                <i data-lucide="message-square" class="w-4 h-4"></i>
+                                <span>${post.replies}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            const ulasanTemplate = () => `
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-1">Ulasan Perusahaan</h2>
+                    <p class="text-slate-600 mb-6">Lihat budaya kerja, gaji, dan lainnya dari kacamata karyawan.</p>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${Object.entries(companyData).map(([id, review]) => `
+                        <div data-company-id="${id}" class="company-card bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md hover:border-teal-500 cursor-pointer transition-all searchable-item" data-search-term="${review.name.toLowerCase()}">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center text-2xl">${review.logo}</div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800">${review.name}</h3>
+                                    <p class="text-sm text-slate-500">${review.industry}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 font-bold text-amber-500">
+                                <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                                <span>${review.rating}</span>
+                                <span class="text-sm text-slate-400 font-normal">(${review.reviews.length + 5} ulasan)</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                    </div>
+                </div>
+            `;
+
+            const companyDetailTemplate = (id) => {
+                const company = companyData[id];
+                return `
+                <div class="fade-in">
+                    <button id="back-to-ulasan" class="flex items-center space-x-2 text-sm font-semibold text-slate-600 hover:text-teal-600 mb-6">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Kembali ke semua ulasan</span>
+                    </button>
+                    <div class="bg-white p-8 rounded-xl border border-slate-200">
+                        <div class="flex items-center space-x-6 mb-6">
+                            <div class="w-20 h-20 bg-slate-200 rounded-lg flex items-center justify-center text-4xl">${company.logo}</div>
+                            <div>
+                                <h2 class="text-3xl font-bold text-slate-900">${company.name}</h2>
+                                <p class="text-slate-500">${company.industry}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center border-y border-slate-200 py-6">
+                            <div><p class="text-xs text-slate-500">Rating Keseluruhan</p><p class="text-2xl font-bold">${company.rating} ⭐</p></div>
+                            <div><p class="text-xs text-slate-500">Budaya Kerja</p><p class="text-2xl font-bold">${company.culture}</p></div>
+                            <div><p class="text-xs text-slate-500">Gaji & Tunjangan</p><p class="text-2xl font-bold">${company.salary}</p></div>
+                            <div><p class="text-xs text-slate-500">Work-Life Balance</p><p class="text-2xl font-bold">${company.wlb}</p></div>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-xl font-bold mb-4">Ulasan dari Karyawan</h3>
+                            <div class="space-y-4">
+                            ${company.reviews.map(r => `
+                                <div class="border-b border-slate-200 pb-4">
+                                    <div class="flex items-center space-x-2 font-bold text-amber-500">${r.rating} <i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                                    <h4 class="font-semibold text-slate-800 mt-1">${r.title}</h4>
+                                    <p class="text-sm text-slate-600 mt-1">${r.content}</p>
+                                </div>
+                            `).join('') || '<p class="text-sm text-slate-500">Belum ada ulasan detail.</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            };
+            
+            const lokerTemplate = (locationFilter = 'Semua', typeFilter = 'Semua') => `
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-1">Lowongan Terkurasi</h2>
+                    <p class="text-slate-600 mb-6">Hanya dari perusahaan dengan reputasi & budaya kerja terbaik.</p>
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <div>
+                            <label class="text-sm font-semibold">Lokasi:</label>
+                            <select id="loker-location-filter" class="p-2 rounded-md border border-slate-300 bg-white">
+                                <option ${locationFilter === 'Semua' ? 'selected' : ''}>Semua</option>
+                                <option ${locationFilter === 'Jakarta' ? 'selected' : ''}>Jakarta</option>
+                                <option ${locationFilter === 'Surabaya' ? 'selected' : ''}>Surabaya</option>
+                                <option ${locationFilter === 'Remote' ? 'selected' : ''}>Remote</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-semibold">Tipe:</label>
+                            <select id="loker-type-filter" class="p-2 rounded-md border border-slate-300 bg-white">
+                                <option ${typeFilter === 'Semua' ? 'selected' : ''}>Semua</option>
+                                <option ${typeFilter === 'Full-time' ? 'selected' : ''}>Full-time</option>
+                                <option ${typeFilter === 'Remote' ? 'selected' : ''}>Remote</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                    ${jobListings.filter(j => (locationFilter === 'Semua' || j.location === locationFilter) && (typeFilter === 'Semua' || j.type === typeFilter)).map(job => `
+                        <div class="bg-white p-4 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-teal-500 searchable-item" data-search-term="${job.title.toLowerCase()} ${job.company.toLowerCase()}">
+                            <div>
+                                <h3 class="font-bold text-slate-800">${job.title}</h3>
+                                <p class="text-sm text-slate-500">${job.company} • ${job.location} • ${job.type}</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-xs font-bold bg-teal-100 text-teal-800 px-2 py-1 rounded-full">${job.tag}</span>
+                                <button class="bg-teal-600 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-teal-700">Lamar</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // --- RENDER LOGIC ---
+            const renderContent = (contentId, options = {}) => {
+                currentContentId = contentId;
+                let template;
+                switch(contentId) {
+                    case 'gaji': template = gajiTemplate(); break;
+                    case 'komunitas': template = komunitasTemplate(options.filter); break;
+                    case 'ulasan': template = ulasanTemplate(); break;
+                    case 'loker': template = lokerTemplate(options.locationFilter, options.typeFilter); break;
+                    default: template = gajiTemplate();
+                }
+                contentArea.innerHTML = template;
+                lucide.createIcons();
+                
+                // Add event listeners for dynamically created elements
+                if (contentId === 'gaji') addGajiFormListener();
+                if (contentId === 'ulasan') addCompanyCardListeners();
+                if (contentId === 'komunitas') addCommunityListeners();
+                if (contentId === 'loker') addLokerListeners();
+            };
+
+            const addGajiFormListener = () => {
+                const gajiForm = document.getElementById('gaji-form');
+                if (gajiForm) {
+                    gajiForm.addEventListener('submit', handleGajiSubmit);
+                    gajiForm.dispatchEvent(new Event('submit'));
+                }
+            };
+
+            const addCompanyCardListeners = () => {
+                document.querySelectorAll('.company-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const companyId = card.dataset.companyId;
+                        contentArea.innerHTML = companyDetailTemplate(companyId);
+                        lucide.createIcons();
+                        document.getElementById('back-to-ulasan').addEventListener('click', () => renderContent('ulasan'));
+                    });
+                });
+            };
+            
+            const addCommunityListeners = () => {
+                document.querySelectorAll('.community-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => renderContent('komunitas', { filter: btn.dataset.category }));
+                });
+                document.querySelectorAll('.upvote-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const countEl = btn.nextElementSibling;
+                        const currentCount = parseInt(countEl.textContent);
+                        countEl.textContent = currentCount + 1;
+                        btn.classList.add('text-teal-600');
+                        btn.disabled = true;
+                    });
+                });
+            };
+            
+            const addLokerListeners = () => {
+                const locationFilter = document.getElementById('loker-location-filter');
+                const typeFilter = document.getElementById('loker-type-filter');
+                const applyFilters = () => renderContent('loker', { locationFilter: locationFilter.value, typeFilter: typeFilter.value });
+                locationFilter.addEventListener('change', applyFilters);
+                typeFilter.addEventListener('change', applyFilters);
+            };
+
+            const handleGajiSubmit = (e) => {
+                if(e) e.preventDefault();
+                const posisi = document.getElementById('posisi').value;
+                const pengalaman = parseInt(document.getElementById('pengalaman').value) || 0;
+
+                const baseSalary = 15000000;
+                const experienceMultiplier = 1 + (pengalaman * 0.15);
+                const randomFactor = 0.8 + Math.random() * 0.4;
+                const medianGaji = Math.round((baseSalary * experienceMultiplier * randomFactor) / 100000) * 100000;
+                
+                const minGaji = medianGaji * 0.75;
+                const maxGaji = medianGaji * 1.5;
+
+                const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+
+                document.getElementById('gaji-result').innerHTML = `
+                    <p class="text-sm text-slate-600 mb-2">Estimasi untuk <strong>${posisi}</strong></p>
+                    <p class="text-4xl font-extrabold text-teal-600">${formatRupiah(medianGaji)}<span class="text-lg font-semibold text-slate-500">/bulan</span></p>
+                    <p class="text-sm text-slate-500 mt-2">Rentang umum: ${formatRupiah(minGaji)} - ${formatRupiah(maxGaji)}</p>
+                `;
+
+                if (gajiChartInstance) gajiChartInstance.destroy();
+                gajiChartInstance = new Chart(document.getElementById('gajiChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Gaji Terendah', 'Median', 'Gaji Tertinggi'],
+                        datasets: [{
+                            label: 'Estimasi Gaji (dalam Juta Rp)',
+                            data: [minGaji / 1000000, medianGaji / 1000000, maxGaji / 1000000],
+                            backgroundColor: ['#a7f3d0', '#14b8a6', '#047857'],
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { callback: (v) => `Rp ${v}Jt` } } }
+                    }
+                });
+            };
+
+            // --- NAVIGATION LOGIC ---
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    sidebarLinks.forEach(l => {
+                        l.classList.remove('nav-active');
+                        l.classList.add('nav-inactive');
+                    });
+                    link.classList.add('nav-active');
+                    link.classList.remove('nav-inactive');
+                    
+                    const contentId = link.dataset.content;
+                    renderContent(contentId);
+                    
+                    // Close sidebar on mobile after click
+                    if(window.innerWidth < 1024) {
+                        document.getElementById('sidebar').classList.add('-translate-x-full');
+                    }
+                });
+            });
+            
+            // --- MOBILE SIDEBAR TOGGLE ---
+            document.getElementById('open-sidebar-btn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+            });
+            document.getElementById('close-sidebar-btn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            });
+            
+            // --- MODAL LOGIC ---
+            const contributeModal = document.getElementById('contribute-modal');
+            document.getElementById('main-contribute-btn').addEventListener('click', () => contributeModal.classList.remove('hidden'));
+            contributeModal.addEventListener('click', (e) => {
+                if (e.target === contributeModal || e.target.closest('.modal-close-btn')) {
+                    contributeModal.classList.add('hidden');
+                }
+            });
+            
+            // --- SEARCH LOGIC ---
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.searchable-item').forEach(item => {
+                    const itemText = item.dataset.searchTerm;
+                    if (itemText.includes(searchTerm)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+
+            // Initial Load
+            renderContent('gaji');
+        });
+    </script>
+</body>
+</html>
